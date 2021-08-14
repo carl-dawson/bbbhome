@@ -6,9 +6,10 @@ from .helpers import get_book_cover
 from .search import add_to_index, remove_from_index, query_index
 from time import time
 import jwt
-from flask import current_app
+from flask import current_app, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from sqlalchemy import func
 
 db = SQLAlchemy()
 login = LoginManager()
@@ -48,8 +49,10 @@ class User(UserMixin, db.Model):
 
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode(
-            {'reset_password': self.id, 'exp': time() + expires_in},
-            current_app.config['SECRET_KEY'], algorithm='HS256').decode('utf-8')
+            {"reset_password": self.id, "exp": time() + expires_in},
+            current_app.config["SECRET_KEY"],
+            algorithm="HS256",
+        ).decode("utf-8")
 
     def update_roles(self, roles):
         if len(roles) == 0:
@@ -64,8 +67,9 @@ class User(UserMixin, db.Model):
     @staticmethod
     def verify_reset_password_token(token):
         try:
-            id = jwt.decode(token, current_app.config['SECRET_KEY'],
-                            algorithms=['HS256'])['reset_password']
+            id = jwt.decode(
+                token, current_app.config["SECRET_KEY"], algorithms=["HS256"]
+            )["reset_password"]
         except:
             return
         return User.query.get(id)
@@ -96,7 +100,7 @@ roles_table = db.Table(
     "user_roles",
     db.Column("user_id", db.Integer(), db.ForeignKey("users.id", ondelete="CASCADE")),
     db.Column("role_id", db.Integer(), db.ForeignKey("roles.id", ondelete="CASCADE")),
-    info={"bind_key": "site"}
+    info={"bind_key": "site"},
 )
 
 
@@ -104,7 +108,7 @@ rooms_table = db.Table(
     "user_rooms",
     db.Column("user_id", db.Integer(), db.ForeignKey("users.id", ondelete="CASCADE")),
     db.Column("room_id", db.Integer(), db.ForeignKey("rooms.id", ondelete="CASCADE")),
-    info={"bind_key": "site"}
+    info={"bind_key": "site"},
 )
 
 
@@ -394,35 +398,35 @@ books_authors_link = db.Table(
     "books_authors_link",
     db.Column("book", db.Integer, db.ForeignKey("books.id"), primary_key=True),
     db.Column("author", db.Integer, db.ForeignKey("authors.id"), primary_key=True),
-    info={"bind_key": "calibre"}
+    info={"bind_key": "calibre"},
 )
 
 books_tags_link = db.Table(
     "books_tags_link",
     db.Column("book", db.Integer, db.ForeignKey("books.id"), primary_key=True),
     db.Column("tag", db.Integer, db.ForeignKey("tags.id"), primary_key=True),
-    info={"bind_key": "calibre"}
+    info={"bind_key": "calibre"},
 )
 
 books_series_link = db.Table(
     "books_series_link",
     db.Column("book", db.Integer, db.ForeignKey("books.id"), primary_key=True),
     db.Column("series", db.Integer, db.ForeignKey("series.id"), primary_key=True),
-    info={"bind_key": "calibre"}
+    info={"bind_key": "calibre"},
 )
 
 books_ratings_link = db.Table(
     "books_ratings_link",
     db.Column("book", db.Integer, db.ForeignKey("books.id"), primary_key=True),
     db.Column("rating", db.Integer, db.ForeignKey("ratings.id"), primary_key=True),
-    info={"bind_key": "calibre"}
+    info={"bind_key": "calibre"},
 )
 
 books_languages_link = db.Table(
     "books_languages_link",
     db.Column("book", db.Integer, db.ForeignKey("books.id"), primary_key=True),
     db.Column("lang_code", db.Integer, db.ForeignKey("languages.id"), primary_key=True),
-    info={"bind_key": "calibre"}
+    info={"bind_key": "calibre"},
 )
 
 books_publishers_link = db.Table(
@@ -431,11 +435,11 @@ books_publishers_link = db.Table(
     db.Column(
         "publisher", db.Integer, db.ForeignKey("publishers.id"), primary_key=True
     ),
-    info={"bind_key": "calibre"}
+    info={"bind_key": "calibre"},
 )
 
 
-class Book(SearchableMixin, db.Model):
+class Book(db.Model):
     __tablename__ = "books"
     __bind_key__ = "calibre"
     __searchable__ = [
@@ -524,3 +528,15 @@ class Book(SearchableMixin, db.Model):
     @property
     def atom_timestamp(self):
         return self.timestamp.strftime("%Y-%m-%dT%H:%M:%S+00:00") or ""
+
+    @classmethod
+    def search(cls, expression, page, per_page, error_out=True):
+        series = Series.query.filter(Series.name.like(f"%{expression}%"))[-1]
+        books = cls.query.filter(
+            Book.title.like(f"%{expression}%") | Book.author_sort.like(f"%{expression}%") | Book.series.any(name=series.name),
+        ).paginate(page=page, per_page=per_page)
+        if error_out and page < 1:
+            abort(404)
+        if not books and page != 1 and error_out:
+            abort(404)
+        return books.items, books.total
