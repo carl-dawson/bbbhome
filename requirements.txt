@@ -275,9 +275,16 @@ sqlalchemy==1.3.24 \
     #   -r requirements.in
     #   alembic
     #   flask-sqlalchemy
-urllib3==1.25.11 \
-    --hash=sha256:8d7eaa5a82a1cac232164990f04874c594c9453ec55eef02eab885aa02fc17a2 \
-    --hash=sha256:f5321fbe4bf3fefa0efd0bfe7fb14e90909eb62a48ccda331726b4319897dd5e
+sysv-ipc==1.1.0 \
+    --hash=sha256:0f063cbd36ec232032e425769ebc871f195a7d183b9af32f9901589ea7129ac3 \
+    --hash=sha256:30611dccecd8fa0dc9f83d4d465e5047692df0ec9a095abef8b90ccc64afbdaf \
+    --hash=sha256:4bbbe4e5ad5ab859e6d21fc8ff3e3b01082b959fa5c2cd76289dbcd56350c5f9 \
+    --hash=sha256:61190b934b0277f7a189092dcabceee8d9736fd73de90fd9b50ea69f0bac4723 \
+    --hash=sha256:ff6e3c98d8aa3e1ae5378d86869c4699c76f94318705d08085c97fb010770a31
+    # via adafruit-blinka
+urllib3==1.26.5 \
+    --hash=sha256:753a0374df26658f99d826cfe40394a686d05985786d946fbe4165b5148f5a7c \
+    --hash=sha256:a7acd0977125325f516bda9735fa7142b909a8d01e8b2e4c8108d0984e6e0098
     # via
     #   -r requirements.in
     #   elasticsearch
