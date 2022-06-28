@@ -531,10 +531,18 @@ class Book(db.Model):
 
     @classmethod
     def search(cls, expression, page, per_page, error_out=True):
-        series = Series.query.filter(Series.name.like(f"%{expression}%"))[-1]
-        books = cls.query.filter(
-            Book.title.like(f"%{expression}%") | Book.author_sort.like(f"%{expression}%") | Book.series.any(name=series.name),
-        ).paginate(page=page, per_page=per_page)
+        series = Series.query.filter(Series.name.like(f"%{expression}%")).first()
+        if series:
+            books = cls.query.filter(
+                Book.title.like(f"%{expression}%")
+                | Book.author_sort.like(f"%{expression}%")
+                | Book.series.any(name=series.name),
+            ).paginate(page=page, per_page=per_page)
+        else:
+            books = cls.query.filter(
+                Book.title.like(f"%{expression}%")
+                | Book.author_sort.like(f"%{expression}%"),
+            ).paginate(page=page, per_page=per_page)
         if error_out and page < 1:
             abort(404)
         if not books and page != 1 and error_out:
