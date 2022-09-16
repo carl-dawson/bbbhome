@@ -83,7 +83,7 @@ limits==1.5.1
     # via
     #   -r requirements.in
     #   flask-limiter
-mako==1.1.6
+mako==1.2.2
     # via
     #   -r requirements.in
     #   alembic
@@ -130,6 +130,8 @@ sqlalchemy==1.3.24
     #   -r requirements.in
     #   alembic
     #   flask-sqlalchemy
+sysv-ipc==1.1.0
+    # via adafruit-blinka
 urllib3==1.26.9
     # via
     #   -r requirements.in
